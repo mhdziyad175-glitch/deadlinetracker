@@ -3,17 +3,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { LogOut, User, Bell, Search, PlusCircle } from 'lucide-react';
+import { User, Bell, Search, PlusCircle } from 'lucide-react';
 import { UserProfile } from '@/src/types';
 import { cn } from '@/src/lib/utils';
 
 interface NavbarProps {
   user: UserProfile | null;
-  onLogout: () => void;
   onAddClick: () => void;
 }
 
-export function Navbar({ user, onLogout, onAddClick }: NavbarProps) {
+export function Navbar({ user, onAddClick }: NavbarProps) {
   return (
     <nav className={cn(
       "fixed top-0 left-0 right-0 z-40",
@@ -70,13 +69,6 @@ export function Navbar({ user, onLogout, onAddClick }: NavbarProps) {
               </button>
               
               {/* Simple dropdown simulation on hover/click would go here */}
-              <button 
-                onClick={onLogout}
-                className="p-2 hover:bg-red-500/20 text-slate-400 hover:text-red-400 rounded-lg transition-colors"
-                title="Logout"
-              >
-                <LogOut size={20} />
-              </button>
             </div>
           ) : (
             <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10">

@@ -37,8 +37,13 @@ import { AssignmentModal } from './components/AssignmentModal';
 import { cn } from './lib/utils';
 
 export default function App() {
-  const [user, setUser] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<UserProfile | null>({
+    uid: 'demo-user-123',
+    displayName: 'Demo Student',
+    email: 'demo@example.com',
+    photoURL: 'https://picsum.photos/seed/student/200/200',
+  });
+  const [loading, setLoading] = useState(false);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAssignment, setEditingAssignment] = useState<Assignment | null>(null);
@@ -47,20 +52,6 @@ export default function App() {
 
   useEffect(() => {
     testConnection();
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      if (firebaseUser) {
-        setUser({
-          uid: firebaseUser.uid,
-          displayName: firebaseUser.displayName,
-          email: firebaseUser.email,
-          photoURL: firebaseUser.photoURL,
-        });
-      } else {
-        setUser(null);
-      }
-      setLoading(false);
-    });
-    return () => unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -170,61 +161,12 @@ export default function App() {
 
   const completionRate = stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-bg-deep flex items-center justify-center">
-        <motion.div 
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-          className="w-12 h-12 border-4 border-brand-primary border-t-transparent rounded-full"
-        />
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-bg-deep flex items-center justify-center p-6 gradient-background relative overflow-hidden">
-        {/* Decorative elements */}
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-brand-primary/20 blur-[120px] rounded-full animate-glow" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-brand-secondary/20 blur-[120px] rounded-full animate-glow" />
-
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="max-w-xl w-full glass-card p-12 rounded-[40px] text-center luxury-shadow relative z-10"
-        >
-          <div className="w-20 h-20 bg-brand-primary rounded-3xl mx-auto flex items-center justify-center mb-8 rotate-3 shadow-2xl shadow-brand-primary/50">
-            <LayoutDashboard className="text-white" size={40} />
-          </div>
-          <h1 className="text-4xl sm:text-5xl font-black text-white mb-4 tracking-tight leading-tight">
-            Stay on top of every <span className="bg-clip-text text-transparent bg-gradient-to-r from-brand-primary to-brand-accent">deadline.</span>
-          </h1>
-          <p className="text-slate-400 text-lg mb-10 leading-relaxed">
-            A premium student dashboard to track assignments, monitor urgency, and never miss a submission again.
-          </p>
-          <button 
-            onClick={signInWithGoogle}
-            className="w-full flex items-center justify-center gap-4 bg-white text-slate-950 font-bold py-5 rounded-2xl hover:bg-slate-200 transition-all active:scale-[0.98] text-lg shadow-xl"
-          >
-            <img src="https://www.gstatic.com/firebase/anonymous-scan.png" className="w-6 h-6 grayscale" alt="" />
-            Continue with Google
-          </button>
-          <p className="mt-8 text-slate-500 text-sm flex items-center justify-center gap-2">
-            <ShieldCheck size={16} /> Secure Academic Data Protocol v2.4
-          </p>
-        </motion.div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-bg-deep font-sans pb-20 relative overflow-hidden">
       <div className="fixed inset-0 mesh-bg animate-glow pointer-events-none" />
       
       <Navbar 
         user={user} 
-        onLogout={logout} 
         onAddClick={() => {
           setEditingAssignment(null);
           setIsModalOpen(true);
