@@ -1,0 +1,72 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper Functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Assignment Validation
+    function isValidAssignment(data) {
+      return data.keys().hasAll(['userId', 'title', 'module', 'dueDate', 'priority', 'status', 'createdAt', 'updatedAt'])
+        && data.keys().size() <= 10 // Allowing for optional notes
+        && data.userId == request.auth.uid
+        && data.title is string && data.title.size() >= 1 && data.title.size() <= 200
+        && data.module is string && data.module.size() >= 1 && data.module.size() <= 100
+        && data.dueDate is string && data.dueDate.size() <= 40 // ISO string format usually
+        && data.priority in ['low', 'medium', 'high']
+        && data.status in ['pending', 'completed']
+        && (data.get('notes', '') is string && data.get('notes', '').size() <= 1000);
+    }
+
+    match /assignments/{assignmentId} {
+      allow get: if isOwner(existing().userId) && isValidId(assignmentId);
+      
+      allow list: if isSignedIn() 
+        && resource.data.userId == request.auth.uid; // Secure list query enforcement
+
+      allow create: if isSignedIn() 
+        && isValidAssignment(incoming())
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time
+        && isValidId(assignmentId);
+
+      allow update: if isOwner(existing().userId)
+        && isValidAssignment(incoming())
+        && incoming().userId == existing().userId
+        && incoming().createdAt == existing().createdAt // Immutable
+        && incoming().updatedAt == request.time
+        && (
+          // Action: Mark Complete / Progress Update
+          incoming().diff(existing()).affectedKeys().hasAny(['status', 'title', 'module', 'dueDate', 'priority', 'notes', 'updatedAt'])
+        );
+
+      allow delete: if isOwner(existing().userId);
+    }
+
+    match /users/{userId}/private/profile {
+      allow read, write: if isOwner(userId) && isValidId(userId);
+    }
+  }
+}

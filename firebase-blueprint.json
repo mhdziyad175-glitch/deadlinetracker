@@ -1,0 +1,42 @@
+{
+  "entities": {
+    "assignment": {
+      "title": "Assignment",
+      "description": "Represents an academic assignment with a deadline.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "UID of the user who owns this assignment." },
+        "title": { "type": "string", "description": "Title of the assignment." },
+        "module": { "type": "string", "description": "Name of the academic module or course." },
+        "dueDate": { "type": "string", "format": "date-time", "description": "Deadline for the assignment." },
+        "priority": { "type": "string", "enum": ["low", "medium", "high"], "description": "Priority level." },
+        "status": { "type": "string", "enum": ["pending", "completed"], "description": "Task completion status." },
+        "notes": { "type": "string", "description": "Optional notes for the assignment." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp." },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Last update timestamp." }
+      },
+      "required": ["userId", "title", "module", "dueDate", "priority", "status", "createdAt", "updatedAt"]
+    },
+    "userProfile": {
+      "title": "User Profile",
+      "description": "Public and private user data.",
+      "type": "object",
+      "properties": {
+        "displayName": { "type": "string" },
+        "email": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "lastLogin": { "type": "string", "format": "date-time" }
+      }
+    }
+  },
+  "firestore": {
+    "/assignments/{assignmentId}": {
+      "schema": "assignment",
+      "description": "Collection of student assignments."
+    },
+    "/users/{userId}/private/profile": {
+      "schema": "userProfile",
+      "description": "User profile data."
+    }
+  }
+}
